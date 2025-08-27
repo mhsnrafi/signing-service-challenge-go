@@ -1,277 +1,401 @@
 {
-  "info": {
-    "name": "Signature Service API",
-    "_postman_id": "b6c2f3b0-2b5b-4d49-a6b6-9a2f9f8f9abc",
-    "description": "REST collection for the Signature Service (health, devices, signing). Uses collection variables for baseUrl and captured device IDs.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8080" },
-    { "key": "device_id_rsa", "value": "" },
-    { "key": "device_id_ecc", "value": "" }
-  ],
-  "item": [
-    {
-      "name": "Health",
-      "item": [
-        {
-          "name": "GET /api/v0/health",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": { "raw": "{{baseUrl}}/api/v0/health", "host": ["{{baseUrl}}"], "path": ["api", "v0", "health"] }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
-                  "const body = pm.response.json();",
-                  "pm.test(\"Status pass & version v0\", () => {",
-                  "  pm.expect(body.data.status).to.eql(\"pass\");",
-                  "  pm.expect(body.data.version).to.eql(\"v0\");",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Devices",
-      "item": [
-        {
-          "name": "POST /api/v0/devices (Create RSA)",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"algorithm\": \"RSA\",\n  \"label\": \"WALLET-1\"\n}"
-            },
-            "url": { "raw": "{{baseUrl}}/api/v0/devices", "host": ["{{baseUrl}}"], "path": ["api", "v0", "devices"] }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Created (201)\", () => pm.response.to.have.status(201));",
-                  "const body = pm.response.json();",
-                  "pm.test(\"Has id & RSA algo\", () => {",
-                  "  pm.expect(body.data.id).to.be.a('string').and.not.empty;",
-                  "  pm.expect(body.data.algorithm).to.eql('RSA');",
-                  "});",
-                  "// store device_id_rsa",
-                  "pm.collectionVariables.set('device_id_rsa', body.data.id);",
-                  "pm.test('Stored device_id_rsa', () => pm.expect(pm.collectionVariables.get('device_id_rsa')).to.not.be.empty);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST /api/v0/devices (Create ECC)",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"algorithm\": \"ECC\",\n  \"label\": \"WALLET-2\"\n}"
-            },
-            "url": { "raw": "{{baseUrl}}/api/v0/devices", "host": ["{{baseUrl}}"], "path": ["api", "v0", "devices"] }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Created (201)\", () => pm.response.to.have.status(201));",
-                  "const body = pm.response.json();",
-                  "pm.test(\"Has id & ECC algo\", () => {",
-                  "  pm.expect(body.data.id).to.be.a('string').and.not.empty;",
-                  "  pm.expect(body.data.algorithm).to.eql('ECC');",
-                  "});",
-                  "// store device_id_ecc",
-                  "pm.collectionVariables.set('device_id_ecc', body.data.id);",
-                  "pm.test('Stored device_id_ecc', () => pm.expect(pm.collectionVariables.get('device_id_ecc')).to.not.be.empty);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET /api/v0/devices (List all)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": { "raw": "{{baseUrl}}/api/v0/devices", "host": ["{{baseUrl}}"], "path": ["api", "v0", "devices"] }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"OK (200)\", () => pm.response.to.have.status(200));",
-                  "const body = pm.response.json();",
-                  "pm.test(\"Array of devices\", () => pm.expect(body.data).to.be.an('array').that.is.not.empty);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET /api/v0/devices/{id} (Get RSA)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v0/devices/{{device_id_rsa}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v0", "devices", "{{device_id_rsa}}"]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"OK (200)\", () => pm.response.to.have.status(200));",
-                  "const body = pm.response.json();",
-                  "pm.test(\"Correct id\", () => pm.expect(body.data.id).to.eql(pm.collectionVariables.get('device_id_rsa')));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET /api/v0/devices/{id} (Get ECC)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v0/devices/{{device_id_ecc}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v0", "devices", "{{device_id_ecc}}"]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"OK (200)\", () => pm.response.to.have.status(200));",
-                  "const body = pm.response.json();",
-                  "pm.test(\"Correct id\", () => pm.expect(body.data.id).to.eql(pm.collectionVariables.get('device_id_ecc')));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST /api/v0/devices/{id}/sign (RSA)",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"data\": \"TX-42\"\n}" },
-            "url": {
-              "raw": "{{baseUrl}}/api/v0/devices/{{device_id_rsa}}/sign",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v0", "devices", "{{device_id_rsa}}", "sign"]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"OK (200)\", () => pm.response.to.have.status(200));",
-                  "const body = pm.response.json();",
-                  "pm.test(\"signature present\", () => pm.expect(body.data.signature).to.be.a('string').and.not.empty);",
-                  "pm.test(\"signed_data format <n>_TX-42_<b64(id)>\", () => {",
-                  "  const sd = body.data.signed_data;",
-                  "  pm.expect(sd).to.be.a('string').and.include('_TX-42_');",
-                  "  const parts = sd.split('_');",
-                  "  pm.expect(parts.length).to.eql(3);",
-                  "  pm.expect(/^[0-9]+$/.test(parts[0])).to.eql(true);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST /api/v0/devices/{id}/sign (ECC)",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"data\": \"HELLO-ECC\"\n}" },
-            "url": {
-              "raw": "{{baseUrl}}/api/v0/devices/{{device_id_ecc}}/sign",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v0", "devices", "{{device_id_ecc}}", "sign"]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"OK (200)\", () => pm.response.to.have.status(200));",
-                  "const body = pm.response.json();",
-                  "pm.test(\"signature present\", () => pm.expect(body.data.signature).to.be.a('string').and.not.empty);",
-                  "pm.test(\"signed_data format <n>_HELLO-ECC_<b64(id)>\", () => {",
-                  "  const sd = body.data.signed_data;",
-                  "  pm.expect(sd).to.be.a('string').and.include('_HELLO-ECC_');",
-                  "  const parts = sd.split('_');",
-                  "  pm.expect(parts.length).to.eql(3);",
-                  "  pm.expect(/^[0-9]+$/.test(parts[0])).to.eql(true);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST /api/v0/devices (Bad algorithm example)",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"algorithm\": \"DSA\",\n  \"label\": \"Invalid\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/v0/devices", "host": ["{{baseUrl}}"], "path": ["api", "v0", "devices"] }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"400 for unsupported algorithm\", () => pm.response.to.have.status(400));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        }
-      ]
-    }
-  ]
+	"info": {
+		"_postman_id": "14538977-8ac7-441f-856b-7b9098fd4d2e",
+		"name": "Signature Service API",
+		"description": "REST collection for the Signature Service (health, devices, signing). Uses collection variables for baseUrl and captured device IDs.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29086575"
+	},
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "GET /api/v0/health",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+									"const body = pm.response.json();",
+									"pm.test(\"Status pass & version v0\", () => {",
+									"  pm.expect(body.data.status).to.eql(\"pass\");",
+									"  pm.expect(body.data.version).to.eql(\"v0\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v0/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v0",
+								"health"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Devices",
+			"item": [
+				{
+					"name": "POST /api/v0/devices (Create RSA)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Created (201)\", () => pm.response.to.have.status(201));",
+									"const body = pm.response.json();",
+									"pm.test(\"Has id & RSA algo\", () => {",
+									"  pm.expect(body.data.id).to.be.a('string').and.not.empty;",
+									"  pm.expect(body.data.algorithm).to.eql('RSA');",
+									"});",
+									"// store device_id_rsa",
+									"pm.collectionVariables.set('device_id_rsa', body.data.id);",
+									"pm.test('Stored device_id_rsa', () => pm.expect(pm.collectionVariables.get('device_id_rsa')).to.not.be.empty);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"algorithm\": \"RSA\",\n  \"label\": \"WALLET-1\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v0/devices",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v0",
+								"devices"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST /api/v0/devices (Create ECC)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Created (201)\", () => pm.response.to.have.status(201));",
+									"const body = pm.response.json();",
+									"pm.test(\"Has id & ECC algo\", () => {",
+									"  pm.expect(body.data.id).to.be.a('string').and.not.empty;",
+									"  pm.expect(body.data.algorithm).to.eql('ECC');",
+									"});",
+									"// store device_id_ecc",
+									"pm.collectionVariables.set('device_id_ecc', body.data.id);",
+									"pm.test('Stored device_id_ecc', () => pm.expect(pm.collectionVariables.get('device_id_ecc')).to.not.be.empty);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"algorithm\": \"ECC\",\n  \"label\": \"WALLET-2\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v0/devices",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v0",
+								"devices"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/v0/devices (List all)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK (200)\", () => pm.response.to.have.status(200));",
+									"const body = pm.response.json();",
+									"pm.test(\"Array of devices\", () => pm.expect(body.data).to.be.an('array').that.is.not.empty);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v0/devices",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v0",
+								"devices"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/v0/devices/{id} (Get RSA)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK (200)\", () => pm.response.to.have.status(200));",
+									"const body = pm.response.json();",
+									"pm.test(\"Correct id\", () => pm.expect(body.data.id).to.eql(pm.collectionVariables.get('device_id_rsa')));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v0/devices/{{device_id_rsa}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v0",
+								"devices",
+								"{{device_id_rsa}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/v0/devices/{id} (Get ECC)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK (200)\", () => pm.response.to.have.status(200));",
+									"const body = pm.response.json();",
+									"pm.test(\"Correct id\", () => pm.expect(body.data.id).to.eql(pm.collectionVariables.get('device_id_ecc')));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v0/devices/{{device_id_ecc}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v0",
+								"devices",
+								"{{device_id_ecc}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST /api/v0/devices/{id}/sign (RSA)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK (200)\", () => pm.response.to.have.status(200));",
+									"const body = pm.response.json();",
+									"pm.test(\"signature present\", () => pm.expect(body.data.signature).to.be.a('string').and.not.empty);",
+									"pm.test(\"signed_data format <n>_TX-42_<b64(id)>\", () => {",
+									"  const sd = body.data.signed_data;",
+									"  pm.expect(sd).to.be.a('string').and.include('_TX-42_');",
+									"  const parts = sd.split('_');",
+									"  pm.expect(parts.length).to.eql(3);",
+									"  pm.expect(/^[0-9]+$/.test(parts[0])).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"data\": \"TX-42\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v0/devices/{{device_id_rsa}}/sign",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v0",
+								"devices",
+								"{{device_id_rsa}}",
+								"sign"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST /api/v0/devices/{id}/sign (ECC)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK (200)\", () => pm.response.to.have.status(200));",
+									"const body = pm.response.json();",
+									"pm.test(\"signature present\", () => pm.expect(body.data.signature).to.be.a('string').and.not.empty);",
+									"pm.test(\"signed_data format <n>_HELLO-ECC_<b64(id)>\", () => {",
+									"  const sd = body.data.signed_data;",
+									"  pm.expect(sd).to.be.a('string').and.include('_HELLO-ECC_');",
+									"  const parts = sd.split('_');",
+									"  pm.expect(parts.length).to.eql(3);",
+									"  pm.expect(/^[0-9]+$/.test(parts[0])).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"data\": \"HELLO-ECC\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v0/devices/{{device_id_ecc}}/sign",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v0",
+								"devices",
+								"{{device_id_ecc}}",
+								"sign"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST /api/v0/devices (Bad algorithm example)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"400 for unsupported algorithm\", () => pm.response.to.have.status(400));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"algorithm\": \"DSA\",\n  \"label\": \"Invalid\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v0/devices",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v0",
+								"devices"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "device_id_rsa",
+			"value": ""
+		},
+		{
+			"key": "device_id_ecc",
+			"value": ""
+		}
+	]
 }
